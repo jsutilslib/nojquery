@@ -89,3 +89,24 @@ To solve the concept of the __context__ in calls to _jQuery_'s function `$`, __n
 These functions are enabled to the collections resulting of calls to `_$`.
 
 E.g. `$('.btn').on('click', (event) => console.log(event) )` will add a handler for _click_ event to each object with class `.btn` in the document.
+
+### Help on functions
+
+Function `attr`:
+
+- `attr(attrName)`: gets the value of the attribute with name _attrName_ of the first element in the collection
+- `attr(attrName, attrValue)`: sets the attribute with name _attrName_ for _all_ the elements in the collection to value _attrValue_.
+
+Function `attrs`:
+
+- `attrs(attributesList, convertCamelcaseToSnakecase = true)`: retrieves a list of attributes for the first element in the collection, and returns it as a dictionary where the keys are the name of the attributes to set, and the values are the values to set for each attribute.
+    - Each of the attributes in the list can be written in the form `<attributeName[:type]>` where the type may be one of [ string, bool, int, float ] and the value will be casted to the specific type. If ommited, the type is a string.
+    - The resulting dict has a function [removeNulls] attached to it that is able to remove the keys with null values. E.g. `{v1:null,v2:"val1",v3:3}` => `{v2:"val1",v3:3}`
+- `attrs(attributesDict, convertCamelcaseToSnakecase = true)`: each entry of the _attributesDict_ parameter is interpreted as `_attributeToSet_: _valueToSet`. This function enables to set the attributes in _attributeDict_ of all the elements in the collection.
+
+In any cases, parameter _convertCamelcaseToSnakecase_ is used to query or to set the attribute names converting the input _camelCase_ to a _snake-case_.
+
+E.g.
+
+- `_$('div').attrs(["myAttribute"])` having `<div my-attribute="value">` will return `{myAttribute:"value"}`.
+- `_$('div').attrs({myAttribute:"other value"})` will set `<div my-attribute="other value">`
