@@ -47,7 +47,7 @@ SOFTWARE.
         Object.assign(htmlObjects, $);
         return htmlObjects;
     }
-    $._$version = "1.0.0";
+    $._$version = "1.0.1";
     $.addClass = function(...classNames) {
         this.forEach((element, _) => {
             classNames.forEach((className, _) => element.classList.add(className));
@@ -97,16 +97,69 @@ SOFTWARE.
         });
         return this;
     };
-    $.attr = function(attrName, attrValue) {
+    $.attr = function(attrName, attrValue = null) {
+        console.log(arguments);
+        if (arguments.length == 1) {
+            if (this.length >= 1) {
+                attrValue = this[0].getAttribute(attrName);
+            }
+            return attrValue;
+        }
         this.forEach((element, _) => {
             element.setAttribute(attrName, attrValue);
         });
         return this;
     };
-    $.attrs = function(attributes) {
+    $.attrs = function(attributes, convertCamelcaseToSnakecase = true) {
+        if (Array.isArray(attributes)) {
+            let result = {};
+            let element = this[0] ?? null;
+            attributes.forEach((attributeName, _) => {
+                let parts = attributeName.split(":");
+                attributeName = parts[0];
+                let attributeNameToGet = convertCamelcaseToSnakecase ? camelcaseToSnakecase(attributeName) : attributeName;
+                let value = element === null ? null : element.getAttribute(attributeNameToGet);
+                if (value != null) {
+                    let type = "string";
+                    if (parts.length > 1) {
+                        type = parts[1].toLowerCase();
+                    }
+                    switch (type) {
+                      case "int":
+                        try {
+                            value = parseInt(value);
+                        } catch (_) {}
+                        ;
+                        break;
+
+                      case "float":
+                        try {
+                            value = parseFloat(value);
+                        } catch (_) {}
+                        ;
+                        break;
+
+                      case "bool":
+                        value = [ "", "true", "1" ].indexOf(value.toLowerCase()) >= 0;
+                        break;
+                    }
+                }
+                result[attributeName] = value;
+            });
+            result.removeNulls = function() {
+                Object.keys(this).forEach(key => {
+                    if (this[key] === null) {
+                        delete this[key];
+                    }
+                });
+                return this;
+            }.bind(result);
+            return result;
+        }
         this.forEach((element, _) => {
             for (let attributeName in attributes) {
-                element.setAttribute(attributeName, attributes[attributeName]);
+                let attributeNameToSet = convertCamelcaseToSnakecase ? camelcaseToSnakecase(attributeName) : attributeName;
+                element.setAttribute(attributeNameToSet, attributes[attributeName]);
             }
         });
         return this;
@@ -128,5 +181,6 @@ SOFTWARE.
     $._$ = function(...elements) {
         return $.bind(this)(...elements);
     };
+    const camelcaseToSnakecase = str => str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
     exports._$ = $;
 })(window);

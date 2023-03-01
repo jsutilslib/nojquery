@@ -51,7 +51,7 @@
     /**
      * The version of the library
      */
-    $._$version = "1.0.0";
+    $._$version = "1.0.1";
     /**
      * Function that adds a class name or a set of class names to the objects. It can be used
      *      both $(...).addClass("class1") as $(...).addClass("class1", "class2", ...)
@@ -125,11 +125,18 @@
         return this;
     }
     /**
-     * Function to set the value of an attribute.
+     * Function to set or to set the value of an attribute.
      * @param {string} attrName: the name of the attribute to set
      * @param {string} attrValue: the value of the attribute
      */
-    $.attr = function (attrName, attrValue) {
+    $.attr = function (attrName, attrValue = null) {
+        console.log(arguments);
+        if (arguments.length == 1) {
+            if (this.length >= 1) {
+                attrValue = this[0].getAttribute(attrName);
+            }
+            return attrValue;
+        }
         this.forEach((element, _) => {
             element.setAttribute(attrName, attrValue);
         })
@@ -138,13 +145,66 @@
     /**
      * Function to set the attributes for the objects by using a dictionary as a basis.
      *   The idea is to use like $(...).attrs({attr1: value1, attr2: value2, ...})
-     * @param {dict} attributes: a dictionary where the keys are the name of the attributes
-     *      to set, and the values are the values to set for each attribute.
+     * @param {dict, list} attributes: 
+     *      - a dictionary where the keys are the name of the attributes to set, and the 
+     *        values are the values to set for each attribute.
+     *      - a list where the elements are the attributes to retrieve and they will be
+     *        returned in a dictionary where the keys are the name of the attributes to get
+     *        and the values are the value of the attribute in the first of the elements
+     *        in the collection.
+     *        (*) the attributes are written in the form  <attributeName[:type]> where the 
+     *            type may be one of [ string, bool, int, float ] and the value will be casted
+     *            to the specific type. If ommited, the type is a string.
+     *        (*) the resulting dict has a function [removeNulls] attached to it that is able 
+     *            to remove the keys with null values. 
+     *                  E.g. {v1:null,v2:"val1",v3:3} => {v2:"val1",v3:3}
+     * @param {bool} convertCamelcaseToSnakecase: if set, when the attributes are set in
+     *      camel case, they are converted to snake case (e.g. myAttribute => my-attribute)
      */
-    $.attrs = function (attributes) {
+    $.attrs = function (attributes, convertCamelcaseToSnakecase = true) {
+        if (Array.isArray(attributes)) {
+            let result = {};
+            let element = this[0]??null;
+            attributes.forEach((attributeName, _) => {
+                // Accept the construction <attributeName>:<type>
+                let parts = attributeName.split(":");
+
+                // Get the name of the attribute and convert to snake case (if needed)
+                attributeName = parts[0];
+                let attributeNameToGet = convertCamelcaseToSnakecase? camelcaseToSnakecase(attributeName) : attributeName;
+
+                // Grab the value, and convert the type (if needed)
+                let value = element===null?null:element.getAttribute(attributeNameToGet);
+                if (value != null) {
+                    let type = "string"
+                    if (parts.length > 1) {
+                        type = parts[1].toLowerCase();
+                    }
+                    switch (type) {
+                        case "int":
+                            try { value = parseInt(value); } catch (_) { }; break;
+                        case "float":
+                            try { value = parseFloat(value); } catch (_) { }; break;
+                        case "bool":
+                            value = [ "", "true", "1" ].indexOf(value.toLowerCase()) >= 0; break;
+                    }
+                }               
+                result[attributeName] = value;
+            });
+            result.removeNulls = function() {
+                Object.keys(this).forEach((key) => {
+                    if (this[key] === null) {
+                        delete this[key];
+                    }
+                })
+                return this;
+            }.bind(result);
+            return result;
+        }
         this.forEach((element, _) => {
             for (let attributeName in attributes) {
-                element.setAttribute(attributeName, attributes[attributeName]);
+                let attributeNameToSet = convertCamelcaseToSnakecase? camelcaseToSnakecase(attributeName) : attributeName;
+                element.setAttribute(attributeNameToSet, attributes[attributeName]);
             }                
         })
         return this;
@@ -182,5 +242,8 @@
     $._$ = function(...elements) {
         return $.bind(this)(...elements);
     }
+
+    const camelcaseToSnakecase = str => str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+
     exports._$ = $;
 })(window);
