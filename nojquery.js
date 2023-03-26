@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 (exports => {
+    const _creationDiv = document.createElement("div");
     function $(...elements) {
         const isHTML = element => element instanceof Element || element instanceof HTMLDocument;
         let context = this._$version === undefined ? [ document ] : this;
@@ -32,9 +33,15 @@ SOFTWARE.
         for (let i in elements) {
             let element = elements[i];
             if (typeof element === "string") {
-                context.forEach((ctx, _) => {
-                    htmlObjects.push(...ctx.querySelectorAll(element));
-                });
+                _creationDiv.innerHTML = element;
+                if (_creationDiv.children.length > 0) {
+                    htmlObjects.push(..._creationDiv.children);
+                    _creationDiv.innerHTML = "";
+                } else {
+                    context.forEach((ctx, _) => {
+                        htmlObjects.push(...ctx.querySelectorAll(element));
+                    });
+                }
             } else if (isHTML(element)) {
                 htmlObjects.push(element);
             }
@@ -47,7 +54,7 @@ SOFTWARE.
         Object.assign(htmlObjects, $);
         return htmlObjects;
     }
-    $._$version = "1.0.1";
+    $._$version = "1.1.0";
     $.addClass = function(...classNames) {
         this.forEach((element, _) => {
             classNames.forEach((className, _) => element.classList.add(className));
@@ -97,54 +104,26 @@ SOFTWARE.
         });
         return this;
     };
-    $.attr = function(attrName, attrValue = null) {
-        console.log(arguments);
-        if (arguments.length == 1) {
-            if (this.length >= 1) {
-                attrValue = this[0].getAttribute(attrName);
+    $.attr = function(param1, param2) {
+        if (typeof param1 === "string") {
+            let attrName = param1;
+            let attrValue = param2;
+            if (arguments.length == 1) {
+                if (this.length >= 1) {
+                    return getAttribute(this[0], attrName);
+                }
+                return null;
             }
-            return attrValue;
-        }
-        this.forEach((element, _) => {
-            element.setAttribute(attrName, attrValue);
-        });
-        return this;
-    };
-    $.attrs = function(attributes, convertCamelcaseToSnakecase = true) {
-        if (Array.isArray(attributes)) {
+            this.forEach((element, _) => {
+                element.setAttribute(attrName, attrValue);
+            });
+        } else if (Array.isArray(param1)) {
+            let attributes = param1;
+            let convertCamelcaseToSnakecase = typeof param2 === "boolean" ? param2 : false;
             let result = {};
             let element = this[0] ?? null;
             attributes.forEach((attributeName, _) => {
-                let parts = attributeName.split(":");
-                attributeName = parts[0];
-                let attributeNameToGet = convertCamelcaseToSnakecase ? camelcaseToSnakecase(attributeName) : attributeName;
-                let value = element === null ? null : element.getAttribute(attributeNameToGet);
-                if (value != null) {
-                    let type = "string";
-                    if (parts.length > 1) {
-                        type = parts[1].toLowerCase();
-                    }
-                    switch (type) {
-                      case "int":
-                        try {
-                            value = parseInt(value);
-                        } catch (_) {}
-                        ;
-                        break;
-
-                      case "float":
-                        try {
-                            value = parseFloat(value);
-                        } catch (_) {}
-                        ;
-                        break;
-
-                      case "bool":
-                        value = [ "", "true", "1" ].indexOf(value.toLowerCase()) >= 0;
-                        break;
-                    }
-                }
-                result[attributeName] = value;
+                result[attributeName] = getAttribute(element, attributeName, convertCamelcaseToSnakecase);
             });
             result.removeNulls = function() {
                 Object.keys(this).forEach(key => {
@@ -155,13 +134,16 @@ SOFTWARE.
                 return this;
             }.bind(result);
             return result;
+        } else if (typeof param1 === "object") {
+            let attributes = param1;
+            let convertCamelcaseToSnakecase = typeof param2 === "boolean" ? param2 : false;
+            this.forEach((element, _) => {
+                for (let attributeName in attributes) {
+                    let attributeNameToSet = convertCamelcaseToSnakecase ? camelcaseToSnakecase(attributeName) : attributeName;
+                    element.setAttribute(attributeNameToSet, attributes[attributeName]);
+                }
+            });
         }
-        this.forEach((element, _) => {
-            for (let attributeName in attributes) {
-                let attributeNameToSet = convertCamelcaseToSnakecase ? camelcaseToSnakecase(attributeName) : attributeName;
-                element.setAttribute(attributeNameToSet, attributes[attributeName]);
-            }
-        });
         return this;
     };
     $.droppable = function(onDropFiles = file => {}, onDropOther = content => {}) {
@@ -181,6 +163,41 @@ SOFTWARE.
     $._$ = function(...elements) {
         return $.bind(this)(...elements);
     };
+    function getAttribute(element, attributeName, convertCamelcaseToSnakecase = false) {
+        if (element === null) {
+            return null;
+        }
+        let parts = attributeName.split(":");
+        attributeName = parts[0];
+        let attributeNameToGet = convertCamelcaseToSnakecase ? camelcaseToSnakecase(attributeName) : attributeName;
+        let value = element.getAttribute(attributeNameToGet);
+        if (value != null) {
+            let type = "string";
+            if (parts.length > 1) {
+                type = parts[1].toLowerCase();
+            }
+            switch (type) {
+              case "int":
+                try {
+                    value = parseInt(value);
+                } catch (_) {}
+                ;
+                break;
+
+              case "float":
+                try {
+                    value = parseFloat(value);
+                } catch (_) {}
+                ;
+                break;
+
+              case "bool":
+                value = [ "", "true", "1" ].indexOf(value.toLowerCase()) >= 0;
+                break;
+            }
+        }
+        return value;
+    }
     const camelcaseToSnakecase = str => str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
     exports._$ = $;
 })(window);
