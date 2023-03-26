@@ -61,7 +61,7 @@ Function `_$` returns an array of _HTML Elements_ that contain the collection of
 
 Function `_$` accepts a variable number of arguments of these types:
 
-1. _string_, that will be used to search objects by means of calls of `querySelectorAll`.
+1. _string_, that will be used to create objects using common _HTML_ language, but if that does not generate any object, `_$` will search objects by means of calls of `querySelectorAll`.
 1. _HTML elements_, that represent objects (either in the DOM or not yet created), that will be added to the collection.
 1. _functions_, that will be considered as handlers for the document when the _DOM_ is loaded.
 1. _collections_, obtained be means of calls to `_$` function.
@@ -82,8 +82,11 @@ To solve the concept of the __context__ in calls to _jQuery_'s function `$`, __n
 - `off(eventName, eventHandler)`, that removes the `eventHandler` for event `eventName` (if no _eventHandler_ is specified, it will remove any event handler).
 - `addClass(...className)`, that adds the css classes in the parameters.
 - `removeClass(...className)`, that removes the css classes in the parameters.
-- `attr(attrName, attrValue)`, that sets the value `attrValue` for attribute `attrName`.
-- `attrs(attrDictionary)`, that enables to set a group of attributes that are the keys and values in dictionary `attrDictionary`.
+- `attr` that is used to set and to get attributes from the collection
+    - `attr(attrName, attrValue)`, sets the value `attrValue` for attribute `attrName`.
+    - `attr(attrName)` retrieves the value of attribute `attrName`
+    - `attrs(attrDictionary)`, that enables to set a group of attributes that are the keys and values in dictionary `attrDictionary`.
+    - `attrs(attrList)`, that retrieves a set of attributes from the first object of the collection.
 - `droppable(onDropFiles, onDropOther)`, that makes an object droppable, and will call `onDropFiles` or `onDropOther` upon receiving anything.
 
 These functions are enabled to the collections resulting of calls to `_$`.
@@ -94,19 +97,20 @@ E.g. `$('.btn').on('click', (event) => console.log(event) )` will add a handler 
 
 Function `attr`:
 
-- `attr(attrName)`: gets the value of the attribute with name _attrName_ of the first element in the collection
-- `attr(attrName, attrValue)`: sets the attribute with name _attrName_ for _all_ the elements in the collection to value _attrValue_.
 
-Function `attrs`:
 
-- `attrs(attributesList, convertCamelcaseToSnakecase = true)`: retrieves a list of attributes for the first element in the collection, and returns it as a dictionary where the keys are the name of the attributes to set, and the values are the values to set for each attribute.
-    - Each of the attributes in the list can be written in the form `<attributeName[:type]>` where the type may be one of [ string, bool, int, float ] and the value will be casted to the specific type. If ommited, the type is a string.
-    - The resulting dict has a function [removeNulls] attached to it that is able to remove the keys with null values. E.g. `{v1:null,v2:"val1",v3:3}` => `{v2:"val1",v3:3}`
-- `attrs(attributesDict, convertCamelcaseToSnakecase = true)`: each entry of the _attributesDict_ parameter is interpreted as `_attributeToSet_: _valueToSet`. This function enables to set the attributes in _attributeDict_ of all the elements in the collection.
+ - `attr(attrName)`: retrieves the attribute attrName of the first element in the collection
+- `attr(attrName, attrValue)`: sets the attribute attrName to value attrValue for all the elements in the collection
+- `attr(attrNamesList, convertCamelcaseToSnakecase)`: retrieves a list that contains the values for each attrName in attrNames
+- `attr(attrNameValuesObject, convertCamelcaseToSnakecase)`: attrNameValues is a dictionary of values { attrName: attrValue } to be set for each element in the collection.
+    - the resulting dict has a function [removeNulls] attached to it that is able to remove the keys with null values. E.g. `{v1:null,v2:"val1",v3:3}` => `{v2:"val1",v3:3}`
+
+
+Each of the attributes in the list can be written in the form `<attributeName[:type]>` where the type may be one of [ string, bool, int, float ] and the value will be casted to the specific type. If ommited, the type is a string.
 
 In any cases, parameter _convertCamelcaseToSnakecase_ is used to query or to set the attribute names converting the input _camelCase_ to a _snake-case_.
 
 E.g.
 
 - `_$('div').attrs(["myAttribute"])` having `<div my-attribute="value">` will return `{myAttribute:"value"}`.
-- `_$('div').attrs({myAttribute:"other value"})` will set `<div my-attribute="other value">`
+- `_$('div').attr({myAttribute:"other value"}, true)` will set `<div my-attribute="other value">`
