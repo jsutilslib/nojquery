@@ -58,10 +58,12 @@
         Object.assign(htmlObjects, $);
         return htmlObjects;
     }
+
     /**
      * The version of the library
      */
-    $._$version = "1.1.0";
+    $._$version = "1.2.0";
+
     /**
      * Function that adds a class name or a set of class names to the objects. It can be used
      *      both $(...).addClass("class1") as $(...).addClass("class1", "class2", ...)
@@ -85,6 +87,55 @@
         });
         return this;
     }
+
+    /**
+     * Function that checks if the first element in the collection has a class name
+     * @param {string} className: the class name to check
+     * @returns true if the first element in the collection has the class name, false otherwise
+     *         (or if the collection is empty)
+     */
+    $.hasClass = function (className) {
+        if (this.length === 0) {
+            return false;
+        }
+        return this[0].classList.contains(className);
+    }
+
+    /**
+     * Function that toggles a class name or a set of class names from the objects. It can be used
+     *     both $(...).toggleClass("class1") as $(...).toggleClass("class1", "class2", ...)
+     * @param {string} classNames: list of class names to toggle
+     * @returns the collection of objects
+     */
+    $.toggleClass = function (...classNames) {
+        this.forEach( (element, _) => {
+            classNames.forEach((className, _) => element.classList.toggle(className));
+        });
+        return this;
+    }
+
+    /**
+     * Auxiliary function that retrieves the event handlers for an element and an event. It makes
+     *   sure that the event handlers structure is created for the element and the event.
+     * @param {*} element: the element to retrieve the event handlers
+     * @param {*} eventHandler: the event handler to retrieve
+     * @returns the list of event handlers for the element and the event
+     */
+    function _getEventHandlers(element, eventHandler) {
+        if (element.__eventHandlers === undefined) {
+            element.__eventHandlers = {};
+        }
+        if (element.__eventHandlers[eventHandler] === undefined) {
+            element.__eventHandlers[eventHandler] = [];
+            element.addEventListener(eventHandler, (event) => {
+                element.__eventHandlers[eventHandler].forEach( (handler, i) => {
+                    handler(event);
+                })
+            });
+        }
+        return element.__eventHandlers[eventHandler];
+    }
+
     /**
      * Function that adds a event handler for an HTML event
      * @param {*} eventName: the name of the event (e.g. click, drop, etc.)
@@ -93,18 +144,7 @@
      */
     $.on = function ( eventName, eventHandler = (content) => {}) {
         this.forEach((element, i) => {
-            if (element.__handlers == null) {
-                element.__handlers = {};
-            }
-            if (element.__handlers[eventName] == null) {
-                element.__handlers[eventName] = [];
-                element.addEventListener(eventName, (event) => {
-                    element.__handlers[eventName].forEach( (handler, i) => {
-                        handler(event);
-                    })
-                })
-            }
-            element.__handlers[eventName].push(eventHandler);
+            _getEventHandlers(element, eventName).push(eventHandler);
         });
         return this;
     }
@@ -116,16 +156,14 @@
      */
     $.off = function (eventName, eventHandler = null) {
         this.forEach((element, i) => {
-            if (element.__handlers == null) {
-                element.__handlers = {};
-            }
-            if (eventHandler == null) {
-                element.__handlers[eventName] = [];
+            let handlers = _getEventHandlers(element, eventName);
+            if (eventHandler === null) {
+                handlers.splice(0, handlers.length);
             } else {
                 let i = 0;
-                while (i < element.__handlers[eventName].length) {
-                    if (element.__handlers[eventName][i] == eventHandler) {
-                        delete element.__handlers[eventName][i];
+                while (i < handlers.length) {
+                    if (handlers[i] == eventHandler) {
+                        handlers.splice(i, 1);
                     } else {
                         i++;
                     }
@@ -236,6 +274,277 @@
                 }
             });
         })
+        return this;
+    }
+
+    /**
+     * Function that sets the value of a data attribute for all the elements of the collection, or
+     *     retrieves the value of the data attribute for the first element in the collection. If
+     *     the attributeValue is not set, the function will return the value of the attribute for 
+     *     the first element in the collection.
+     * @param {string} attributeName: the name of the attribute to set or retrieve
+     * @param {string} attributeValue: the value to set for the attribute
+     * @returns the value of the attribute for the first element in the collection
+     *         or the collection of objects
+     */
+    $.data = function (attributeName, attributeValue) {
+        if (attributeValue === undefined) {
+            return this[0].dataset[attributeName];
+        }
+        this.forEach((x) => x.dataset[attributeName] = attributeValue);
+        return this;
+    }
+
+    /**
+     * Function that sets the width of the elements in the collection, or retrieves the width of the first
+     *   element in the collection. If the width is not set, the function will return the width of the first
+     *   element in the collection.
+     * @param {number} width: the width in pixels to set for the elements
+     * @returns the width of the first element in the collection
+     */
+    $.width = function(width) {
+        if (width === undefined) {
+            if (this.length === 0) {
+                return 0;
+            }
+            return this[0].offsetWidth;
+        }
+        if (typeof width === "string") {
+            width = parseInt(width);
+            if (!isNaN(width)) {
+                width = width + "px";
+            }
+        }
+        this.forEach((x) => x.style.width = width);
+        return this;
+    }
+
+    /**
+     * Function that sets the height of the elements in the collection, or retrieves the height of the first
+     *   element in the collection. If the height is not set, the function will return the height of the first
+     *   element in the collection.
+     * @param {number} height: the height in pixels to set for the elements
+     * @returns the height of the first element in the collection
+     */
+    $.height = function(height) {
+        if (height === undefined) {
+            if (this.length === 0) {
+                return 0;
+            }
+            return this[0].offsetHeight;
+        }
+        if (typeof height === "string") {
+            height = parseInt(height);
+            if (!isNaN(height)) {
+                height = height + "px";
+            }
+        }
+        this.forEach((x) => x.style.height = height);
+        return this;
+    }
+
+    /**
+     * Function that retrieves the offset position of the first element in the collection
+     * @returns an object with the properties top and left that represent the offset position
+     *     of the first element in the collection { top: <top>, left: <left> } where <top> and 
+     *     <left> are the offset positions in pixels
+     */
+    $.offset = function() {
+        if (this.length === 0) {
+            return { top: 0, left: 0 };
+        }
+        let rect = this[0].getBoundingClientRect();
+        return {
+            top: rect.top + window.scrollY,
+            left: rect.left + window.scrollX
+        }
+    }
+
+    /**
+     * Function that retrieves the outer height of the first element in the collection
+     * @returns the outer height of the first element in the collection in pixels
+     *         or 0 if the collection is empty
+     */
+    $.outerHeight = function() {
+        if (this.length === 0) {
+            return 0;
+        }
+        return this[0].offsetHeight;
+    }
+
+    /**
+     * Function that retrieves the outer width of the first element in the collection
+     * @returns the outer width of the first element in the collection in pixels
+     *        or 0 if the collection is empty
+     */
+    $.outerWidth = function() {
+        if (this.length === 0) {
+            return 0;
+        }
+        return this[0].offsetWidth;
+    }
+
+    /**
+     * Function that retrieves the position of the first element in the collection
+     * @returns an object with the properties top and left that represent the position
+     *    of the first element in the collection { top: <top>, left: <left> } where <top> and
+     *   <left> are the positions in pixels
+     */
+    $.position = function() {
+        if (this.length === 0) {
+            return { top: 0, left: 0 };
+        }
+        let rect = this[0].getBoundingClientRect();
+        return {
+            top: rect.top,
+            left: rect.left
+        }
+    }
+
+    /**
+     * Function that clears the content of the elements in the collection by setting the innerHTML
+     *     to an empty string.
+     * @returns the collection of objects
+     */
+    $.empty = function() {
+        this.forEach((x) => x.innerHTML = "");
+        return this;
+    }
+
+    /**
+     * Function that removes the elements in the collection from the DOM
+     * @returns the collection of objects
+     */
+    $.remove = function() {
+        this.forEach((x) => x.remove());
+        return this;
+    }
+
+    /**
+     * Function that appends an element to the elements in the collection. The element may be
+     *    - an HTMLElement
+     *    - an array of HTMLElement
+     *    - a string with the HTML content to append
+     * @param {*} element: the element to append
+     * @returns the collection of objects
+     */
+    $.append = function(element) {
+        if (element instanceof HTMLElement) {
+            if (this.length > 0) {
+                this[0].appendChild(element);
+            }
+        } else if (Array.isArray(element)) {
+            element.forEach((x) => this.append(x));
+        } else if (typeof element === "string") {
+            this.forEach((x) => x.innerHTML += element);
+        }
+        return this;
+    }
+
+    /**
+     * Function that prepends an element to the elements in the collection. The element may be
+     *   - an HTMLElement
+     *   - an array of HTMLElement
+     *   - a string with the HTML content to prepend
+     * @param {*} element: the element to prepend
+     * @returns the collection of objects
+     */
+    $.prepend = function(element) {
+        if (element instanceof HTMLElement) {
+            if (this.length > 0) {
+                this[0].insertBefore(element, this[0].firstChild);
+            }
+        } else if (Array.isArray(element)) {
+            element.forEach((x) => this.prepend(x));
+        } else if (typeof element === "string") {
+            this.forEach((x) => x.innerHTML = element + x.innerHTML);
+        }
+        return this;
+    }
+
+    /**
+     * Function that inserts an element after the elements in the collection. The element may be
+     *  - an HTMLElement
+     *  - an array of HTMLElement
+     *  - a string with the HTML content to insert
+     * @param {*} element: the element to insert
+     * @returns the collection of objects
+     */
+    $.after = function(element) {
+        if (element instanceof HTMLElement) {
+            if (this.length > 0) {
+                this[0].insertAdjacentElement("afterend", element);
+            }
+        } else if (Array.isArray(element)) {
+            element.forEach((x) => this.after(x));
+        } else if (typeof element === "string") {
+            this.forEach((x) => x.insertAdjacentHTML("afterend", element));
+        }
+        return this;
+    }
+
+    /**
+     * Function that inserts an element before the elements in the collection. The element may be
+     *  - an HTMLElement
+     *  - an array of HTMLElement
+     *  - a string with the HTML content to insert
+     * @param {*} element: the element to insert
+     * @returns the collection of objects
+     */
+    $.before = function(element) {
+        if (element instanceof HTMLElement) {
+            if (this.length > 0) {
+                this[0].insertAdjacentElement("beforebegin", element);
+            }
+        } else if (Array.isArray(element)) {
+            element.forEach((x) => this.before(x));
+        } else if (typeof element === "string") {
+            this.forEach((x) => x.insertAdjacentHTML("beforebegin", element));
+        }
+        return this;
+    }
+
+    /**
+     * Function that searches for elements in the collection that match a selector and returns
+     *    a new collection with the elements found.
+     * @param {*} selector: the selector to search for
+     * @returns a new collection with the elements found
+     */
+    $.find = function(selector) {
+        let result = [];
+        this.forEach((x) => result.push(...Array.from(x.querySelectorAll(selector))));
+        return $(result);
+    }
+
+    /**
+     * Function that retrieves the element at a specific index in the collection
+     * @param {*} index: the index of the element to retrieve
+     * @returns the element at the index in the collection or null if the index is out of bounds
+     *        or the collection is empty or the collection of objects if the index is not set
+     */
+    $.get = function(index) {
+        if (index === undefined) {
+            return this;
+        }
+        if ((this.length === 0) || (index < 0) || (index >= this.length)) {
+            return null;
+        }
+        return this[index];
+    }
+
+    /**
+     * Function that calls a function for each element in the collection. The function will receive
+     *   two parameters: callback(index, element) where <index> is the index of the element in the 
+     *   collection and <element> is the element itself. The function is bound to the collection, so
+     *   that this[index] will be the element.
+     * @param {*} callback: the function to call for each element in the collection
+     * @returns the collection of objects
+     */
+    $.each = function(callback) {
+        callback = callback.bind(this);
+        for (let i = 0; i < this.length; i++) {
+            callback(i, this[i]);
+        }
         return this;
     }
 

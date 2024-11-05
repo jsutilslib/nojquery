@@ -24,7 +24,7 @@ Absolutely yes. And I will try to make it in a manner that it would be easy to i
 The preferred method to use __nojQuery__ is to get it from a CDN:
 
 ```
-<script src="https://cdn.jsdelivr.net/gh/jsutilslib/nojquery@1/nojquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/jsutilslib/nojquery@1/dist/nojquery.min.js"></script>
 ```
 
 ### From sources
@@ -82,12 +82,45 @@ To solve the concept of the __context__ in calls to _jQuery_'s function `$`, __n
 - `off(eventName, eventHandler)`, that removes the `eventHandler` for event `eventName` (if no _eventHandler_ is specified, it will remove any event handler).
 - `addClass(...className)`, that adds the css classes in the parameters.
 - `removeClass(...className)`, that removes the css classes in the parameters.
+- `toggleClass(className)`, that toggles the css class in the parameter.
+- `hasClass(className)`, that returns `true` if the object has the css class in the parameter.
 - `attr` that is used to set and to get attributes from the collection
     - `attr(attrName, attrValue)`, sets the value `attrValue` for attribute `attrName`.
     - `attr(attrName)` retrieves the value of attribute `attrName`
     - `attrs(attrDictionary)`, that enables to set a group of attributes that are the keys and values in dictionary `attrDictionary`.
     - `attrs(attrList)`, that retrieves a set of attributes from the first object of the collection.
 - `droppable(onDropFiles, onDropOther)`, that makes an object droppable, and will call `onDropFiles` or `onDropOther` upon receiving anything.
+- `data` that is used to set and to get data from the collection
+    - `data(dataName, dataValue)`, sets the value `dataValue` for data `dataName` for every object in the collection.
+    - `data(dataName)` retrieves the value of data `dataName` from the first object in the collection.
+- `width`, that retrieves the width of the first object in the collection, or sets the width for all the objects in the collection.
+- `height`, that retrieves the height of the first object in the collection, or sets the height for all the objects in the collection.
+- `outerWidth`, that retrieves the outer width of the first object in the collection, or sets the outer width for all the objects in the collection.
+- `outerHeight`, that retrieves the outer height of the first object in the collection, or sets the outer height for all the objects in the collection.
+- `offset`, that retrieves the offset of the first object in the collection, or sets the offset for all the objects in the collection.
+- `position`, that retrieves the position of the first object in the collection, or sets the position for all the objects in the collection.
+- `empty`, that empties the content of the first object in the collection, by setting the innerHTML to an empty string.
+- `remove`, that calls the `remove` function for all the objects in the collection, to remove them from the DOM.
+- `append`, used to insert content at the end of the first object in the collection, or plain html to every object in the collection.
+    - `append(element)`, that appends the element to the first object in the collection.
+    - `append([element1, element2, ...])`, that appends the elements to the first object in the collection.
+    - `append(html)`, that appends the html content to every object in the collection.
+- `prepend`, used to insert content at the beginning of the first object in the collection, or plain html to every object in the collection.
+    - `prepend(element)`, that prepends the element to the first object in the collection.
+    - `prepend([element1, element2, ...])`, that prepends the elements to the first object in the collection.
+    - `prepend(html)`, that prepends the html content to every object in the collection.
+- `before`, used to insert content before the first object in the collection, or plain html to every object in the collection.
+    - `before(element)`, that inserts the element before the first object in the collection.
+    - `before([element1, element2, ...])`, that inserts the elements before the first object in the collection.
+    - `before(html)`, that inserts the html content before every object in the collection.
+- `after`, used to insert content after the first object in the collection, or plain html to every object in the collection.
+    - `after(element)`, that inserts the element after the first object in the collection.
+    - `after([element1, element2, ...])`, that inserts the elements after the first object in the collection.
+    - `after(html)`, that inserts the html content after every object in the collection.
+- `find(selector)`, that searches for objects in the collection that match the selector.
+- `get(index)`, that retrieves the object at position `index` in the collection.
+- `each(callback)`, that calls `callback` for each object in the collection.
+    - callback is a function `callback(index, element)` that receives the index of the object in the collection and the object itself. The function is bound to the collection (so that `this` means the collection).
 
 These functions are enabled to the collections resulting of calls to `_$`.
 
