@@ -121,6 +121,11 @@ To solve the concept of the __context__ in calls to _jQuery_'s function `$`, __n
 - `get(index)`, that retrieves the object at position `index` in the collection.
 - `each(callback)`, that calls `callback` for each object in the collection.
     - callback is a function `callback(index, element)` that receives the index of the object in the collection and the object itself. The function is bound to the collection (so that `this` means the collection).
+- `map(callback)`, that calls `callback` for each object in the collection and returns the results in an array.
+    - callback is a function `callback(index, element)` that receives the index of the object in the collection and the object itself. The function is bound to the collection (so that `this` means the collection).
+- `filter(callback)`, that filters the objects in the collection by calling `callback` for each object in the collection.
+    - callback is a function `callback(index, element)` that receives the index of the object in the collection and the object itself. The function is bound to the collection (so that `this` means the collection). The function must return `true` to keep the object in the collection.
+- `text(text)`, that sets the text of the first object in the collection, or retrieves the text of the first object in the collection.
 
 These functions are enabled to the collections resulting of calls to `_$`.
 

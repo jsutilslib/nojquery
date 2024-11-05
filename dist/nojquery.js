@@ -330,6 +330,31 @@ SOFTWARE.
 			}
 			return this;
 		};
+		$.map = function (callback) {
+			let result = [];
+			callback = callback.bind(this);
+			for (let i = 0; i < this.length; i++) {
+				result.push(callback(i, this[i]));
+			}
+			return result;
+		};
+		$.filter = function (callback) {
+			let result = [];
+			callback = callback.bind(this);
+			for (let i = 0; i < this.length; i++) {
+				if (callback(i, this[i])) {
+					result.push(this[i]);
+				}
+			}
+			return $(result);
+		};
+		$.text = function (text) {
+			if (text === undefined) {
+				return this[0].innerText;
+			}
+			this.forEach(x => x.innerText = text);
+			return this;
+		};
 		$._$ = function (...elements) {
 			return $.bind(this)(...elements);
 		};

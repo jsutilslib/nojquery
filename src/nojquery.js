@@ -549,6 +549,56 @@
     }
 
     /**
+     * Function that calls a function for each element in the collection and returns an array with the
+     *   results of the calls to the function. The function will receive two parameters: callback(index, element)
+     *   where <index> is the index of the element in the collection and <element> is the element itself. The function
+     *   is bound to the collection, so that this[index] will be the element.
+     * @param {*} callback: the function to call for each element in the collection
+     * @returns an array with the results of the calls to the function
+     */
+    $.map = function(callback) {
+        let result = [];
+        callback = callback.bind(this);
+        for (let i = 0; i < this.length; i++) {
+            result.push(callback(i, this[i]));
+        }
+        return result;
+    }
+
+    /**
+     * Function that filters the elements in the collection that return "true"-ish when calling the callback function. 
+     *  The callback function will receive two parameters: callback(index, element) where <index> is the index of the 
+     *  element in the collection and <element> is the element itself. The function is bound to the collection, so that 
+     *  this[index] will be the element.
+     *  The callback function should return true if the element passes the filter, false otherwise.
+     * @param {*} callback: the function to filter the elements in the collection
+     * @returns a new collection with the elements that pass the filter
+     */
+    $.filter = function(callback) {
+        let result = [];
+        callback = callback.bind(this);
+        for (let i = 0; i < this.length; i++) {
+            if (callback(i, this[i])) {
+                result.push(this[i]);
+            }
+        }
+        return $(result);
+    }
+
+    /**
+     * Function that retrieves the text of the first element in the collection, or sets the text of all the elements
+     * @param {*} text: the text to set for the elements
+     * @returns the text of the first element in the collection or the collection of objects
+     */
+    $.text = function(text) {
+        if (text === undefined) {
+            return this[0].innerText;
+        }
+        this.forEach((x) => x.innerText = text);
+        return this;
+    }
+    
+    /**
      * The $ function scoped to the objects that are part of a previous $ object; this is the same
      *      function $(...elements), except for the fact that the search for elements using selectors
      *      will be done using the existing elements as scope.
