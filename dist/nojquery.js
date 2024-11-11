@@ -46,17 +46,22 @@ SOFTWARE.
 					}
 				} else if (isHTML(element)) {
 					htmlObjects.push(element);
-				}
-				if (Array.isArray(element)) {
-					element.map(e => $(e)).forEach((element, i) => htmlObjects.push(...element));
+				} else if (Array.isArray(element)) {
+					for (let i in element) {
+						if (isHTML(element[i])) {
+							htmlObjects.push(element[i]);
+						}
+					}
 				} else if (typeof element === "function") {
 					$(document).on("DOMContentLoaded", element);
+				} else {
+					console.log("Element not recognized: ", element);
 				}
 			}
 			Object.assign(htmlObjects, $);
 			return htmlObjects;
 		}
-		$._$version = "1.2.0";
+		$._$version = "1.2.1";
 		$.addClass = function (...classNames) {
 			this.forEach((element, _) => {
 				classNames.forEach((className, _) => element.classList.add(className));
@@ -178,6 +183,9 @@ SOFTWARE.
 		};
 		$.data = function (attributeName, attributeValue) {
 			if (attributeValue === undefined) {
+				if (this.length === 0) {
+					return null;
+				}
 				return this[0].dataset[attributeName];
 			}
 			this.forEach(x => x.dataset[attributeName] = attributeValue);
@@ -350,9 +358,22 @@ SOFTWARE.
 		};
 		$.text = function (text) {
 			if (text === undefined) {
+				if (this.length === 0) {
+					return "";
+				}
 				return this[0].innerText;
 			}
 			this.forEach(x => x.innerText = text);
+			return this;
+		};
+		$.html = function (html) {
+			if (html === undefined) {
+				if (this.length === 0) {
+					return "";
+				}
+				return this[0].innerHTML;
+			}
+			this.forEach(x => x.innerHTML = html);
 			return this;
 		};
 		$._$ = function (...elements) {

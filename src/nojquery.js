@@ -33,6 +33,7 @@
         if (elements.length === 0) {
             elements = [ ...context ];
         }
+
         for (let i in elements) {
             let element = elements[i];
             if (typeof element === "string") {
@@ -49,10 +50,16 @@
                 }
             } else if (isHTML(element)) {
                 htmlObjects.push(element);
-            } if (Array.isArray(element)) {
-                element.map(e => $(e)).forEach((element, i) => htmlObjects.push(...element));
+            } else if (Array.isArray(element)) {
+                for (let i in element) {
+                    if (isHTML(element[i])) {
+                        htmlObjects.push(element[i]);
+                    }
+                }
             } else if (typeof element === "function") {
                 $(document).on("DOMContentLoaded", element);
+            } else {
+                console.log("Element not recognized: ", element);
             }
         }
         Object.assign(htmlObjects, $);
@@ -62,7 +69,7 @@
     /**
      * The version of the library
      */
-    $._$version = "1.2.0";
+    $._$version = "1.2.1";
 
     /**
      * Function that adds a class name or a set of class names to the objects. It can be used
@@ -289,6 +296,9 @@
      */
     $.data = function (attributeName, attributeValue) {
         if (attributeValue === undefined) {
+            if (this.length === 0) {
+                return null;
+            }
             return this[0].dataset[attributeName];
         }
         this.forEach((x) => x.dataset[attributeName] = attributeValue);
@@ -592,9 +602,28 @@
      */
     $.text = function(text) {
         if (text === undefined) {
+            if (this.length === 0) {
+                return "";
+            }
             return this[0].innerText;
         }
         this.forEach((x) => x.innerText = text);
+        return this;
+    }
+
+    /**
+     * Function that retrieves the HTML content of the first element in the collection, or sets the HTML content of all the elements
+     * @param {*} html: the HTML content to set for the elements
+     * @returns the HTML content of the first element in the collection or the collection of objects
+     */
+    $.html = function(html) {
+        if (html === undefined) {
+            if (this.length === 0) {
+                return "";
+            }
+            return this[0].innerHTML;
+        }
+        this.forEach((x) => x.innerHTML = html);
         return this;
     }
     
